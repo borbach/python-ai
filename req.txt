@@ -1,0 +1,11 @@
+https://claude.ai/share/e2505d44-7d65-4962-9132-26bd1e3b9904
+
+# Core packages
+pip install opencv-python pillow pygame PyOpenGL SpeechRecognition pyttsx3 requests numpy
+
+# Audio support (platform-specific)
+pip install pyaudio
+
+# Linux additional requirements:
+sudo apt-get install python3-pyaudio portaudio19-dev
+
