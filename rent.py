@@ -26,7 +26,7 @@ class RentalPropertyCalculator:
         self.water_bill = tk.DoubleVar()
         
         self.rent_entries = []
-        self.num_rent_units = tk.IntVar(value=1)
+        self.num_rent_units = tk.IntVar(value=2)
         
         self.create_widgets()
         
@@ -102,8 +102,9 @@ class RentalPropertyCalculator:
         
         ttk.Button(button_frame, text="Calculate", command=self.calculate).pack(side=tk.LEFT, padx=(0, 10))
         ttk.Button(button_frame, text="Export to CSV", command=self.export_csv).pack(side=tk.LEFT, padx=(0, 10))
-        ttk.Button(button_frame, text="Fill All", command=self.fill_all).pack(side=tk.LEFT)
-        ttk.Button(button_frame, text="Clear All", command=self.clear_all).pack(side=tk.LEFT)
+        ttk.Button(button_frame, text="Fill All", command=self.fill_all).pack(side=tk.RIGHT)
+        ttk.Button(button_frame, text="Clear All", command=self.clear_all).pack(side=tk.RIGHT)
+
         
         # Results Frame
         self.results_frame = ttk.LabelFrame(main_frame, text="Results", padding="10")
