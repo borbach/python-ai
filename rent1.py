@@ -21,8 +21,7 @@ class RentalPropertyCalculator:
         self.tax1 = tk.DoubleVar()
         self.tax2 = tk.DoubleVar()
         self.tax3 = tk.DoubleVar()
-        self.insurance1 = tk.DoubleVar()
-        self.insurance2 = tk.DoubleVar()
+        self.insurance = tk.DoubleVar()
         self.water_bill = tk.DoubleVar()
         
         self.rent_entries = []
@@ -70,13 +69,10 @@ class RentalPropertyCalculator:
         ttk.Entry(expenses_frame, textvariable=self.tax3, width=15).grid(row=2, column=1, padx=(10, 0), pady=2)
         
         ttk.Label(expenses_frame, text="Insurance (Annual $):").grid(row=3, column=0, sticky=tk.W, pady=2)
-        ttk.Entry(expenses_frame, textvariable=self.insurance1, width=15).grid(row=3, column=1, padx=(10, 0), pady=2)
-
-        ttk.Label(expenses_frame, text="Insurance (Annual $):").grid(row=4, column=0, sticky=tk.W, pady=2)
-        ttk.Entry(expenses_frame, textvariable=self.insurance2, width=15).grid(row=4, column=1, padx=(10, 0), pady=2)
+        ttk.Entry(expenses_frame, textvariable=self.insurance, width=15).grid(row=3, column=1, padx=(10, 0), pady=2)
         
-        ttk.Label(expenses_frame, text="Water Bill (Annual $):").grid(row=5, column=0, sticky=tk.W, pady=2)
-        ttk.Entry(expenses_frame, textvariable=self.water_bill, width=15).grid(row=5, column=1, padx=(10, 0), pady=2)
+        ttk.Label(expenses_frame, text="Water Bill (Annual $):").grid(row=4, column=0, sticky=tk.W, pady=2)
+        ttk.Entry(expenses_frame, textvariable=self.water_bill, width=15).grid(row=4, column=1, padx=(10, 0), pady=2)
         
         # Rental Income Section
         income_frame = ttk.LabelFrame(main_frame, text="Rental Income", padding="10")
@@ -102,7 +98,6 @@ class RentalPropertyCalculator:
         
         ttk.Button(button_frame, text="Calculate", command=self.calculate).pack(side=tk.LEFT, padx=(0, 10))
         ttk.Button(button_frame, text="Export to CSV", command=self.export_csv).pack(side=tk.LEFT, padx=(0, 10))
-        ttk.Button(button_frame, text="Fill All", command=self.fill_all).pack(side=tk.LEFT)
         ttk.Button(button_frame, text="Clear All", command=self.clear_all).pack(side=tk.LEFT)
         
         # Results Frame
@@ -168,13 +163,13 @@ class RentalPropertyCalculator:
                 messagebox.showerror("Error", "Mortgage length must be positive!")
                 return
             
-           # Calculate mortgage payments
+            # Calculate mortgage payments
             monthly_mortgage = self.calculate_mortgage_payment(principal, rate, years)
             annual_mortgage = monthly_mortgage * 12
             
             # Calculate total expenses
             total_taxes = self.tax1.get() + self.tax2.get() + self.tax3.get()
-            insurance_annual = self.insurance1.get() + self.insurance2.get()
+            insurance_annual = self.insurance.get()
             water_annual = self.water_bill.get()
             
             total_annual_expenses = annual_mortgage + total_taxes + insurance_annual + water_annual
@@ -251,7 +246,7 @@ ANNUAL COSTS:
 • Tax 2: ${calc['tax2']:,.2f}
 • Tax 3: ${calc['tax3']:,.2f}
 • Total Taxes: ${calc['total_taxes']:,.2f}
-• Total Insurance: ${calc['insurance']:,.2f}
+• Insurance: ${calc['insurance']:,.2f}
 • Water Bill: ${calc['water_bill']:,.2f}
 • TOTAL ANNUAL EXPENSES: ${calc['total_annual_expenses']:,.2f}
 
@@ -351,25 +346,6 @@ PROFIT/LOSS ANALYSIS:
         except Exception as e:
             messagebox.showerror("Error", f"Failed to export CSV: {str(e)}")
     
-    def fill_all(self):
-        """Fills input fields with common values"""
-        self.mortgage_rate.set(7)
-        self.mortgage_amount.set(900000)
-        self.down_payment.set(180000)
-        self.mortgage_length.set(30)
-        self.tax1.set(5000)
-        self.tax2.set(3000)
-        self.tax3.set(2000)
-        self.insurance1.set(5000)
-        self.insurance2.set(1000)
-        self.water_bill.set(1000)
-        
-        for rent in self.rent_entries:
-            rent.set(3500)
-        
-        self.results_text.delete(1.0, tk.END)
-        self.last_calculation = None
-
     def clear_all(self):
         """Clear all input fields and results"""
         self.mortgage_rate.set(0)
@@ -379,8 +355,7 @@ PROFIT/LOSS ANALYSIS:
         self.tax1.set(0)
         self.tax2.set(0)
         self.tax3.set(0)
-        self.insurance1.set(0)
-        self.insurance2.set(0)
+        self.insurance.set(0)
         self.water_bill.set(0)
         
         for rent in self.rent_entries:
