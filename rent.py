@@ -9,7 +9,7 @@ class RentalPropertyCalculator:
         self.root = root
         self.root.title("Rental Property Profit/Loss Calculator")
 #        self.root.geometry("600x700")
-        self.root.geometry("1800x1000")
+        self.root.geometry("600x1000")
         self.root.resizable(True, True)
         
         # Variables to store input values

@@ -13,7 +13,7 @@ class MortgageAI:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("AI Mortgage Calculator")
-        self.root.geometry("900x700")
+        self.root.geometry("800x800")
         self.root.configure(bg='#f0f0f0')
         
         # Conversation history
