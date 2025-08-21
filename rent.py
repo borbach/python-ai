@@ -60,19 +60,19 @@ class RentalPropertyCalculator:
         expenses_frame = ttk.LabelFrame(main_frame, text="Annual Expenses", padding="10")
         expenses_frame.pack(fill=tk.X, pady=(0, 10))
         
-        ttk.Label(expenses_frame, text="Tax 1 (Annual $):").grid(row=0, column=0, sticky=tk.W, pady=2)
+        ttk.Label(expenses_frame, text="School Tax (Annual $):").grid(row=0, column=0, sticky=tk.W, pady=2)
         ttk.Entry(expenses_frame, textvariable=self.tax1, width=15).grid(row=0, column=1, padx=(10, 0), pady=2)
         
-        ttk.Label(expenses_frame, text="Tax 2 (Annual $):").grid(row=1, column=0, sticky=tk.W, pady=2)
+        ttk.Label(expenses_frame, text="County Tax (Annual $):").grid(row=1, column=0, sticky=tk.W, pady=2)
         ttk.Entry(expenses_frame, textvariable=self.tax2, width=15).grid(row=1, column=1, padx=(10, 0), pady=2)
         
-        ttk.Label(expenses_frame, text="Tax 3 (Annual $):").grid(row=2, column=0, sticky=tk.W, pady=2)
+        ttk.Label(expenses_frame, text="Long Beach Tax (Annual $):").grid(row=2, column=0, sticky=tk.W, pady=2)
         ttk.Entry(expenses_frame, textvariable=self.tax3, width=15).grid(row=2, column=1, padx=(10, 0), pady=2)
         
-        ttk.Label(expenses_frame, text="Insurance (Annual $):").grid(row=3, column=0, sticky=tk.W, pady=2)
+        ttk.Label(expenses_frame, text="Hazard Insurance (Annual $):").grid(row=3, column=0, sticky=tk.W, pady=2)
         ttk.Entry(expenses_frame, textvariable=self.insurance1, width=15).grid(row=3, column=1, padx=(10, 0), pady=2)
 
-        ttk.Label(expenses_frame, text="Insurance (Annual $):").grid(row=4, column=0, sticky=tk.W, pady=2)
+        ttk.Label(expenses_frame, text="Flood Insurance (Annual $):").grid(row=4, column=0, sticky=tk.W, pady=2)
         ttk.Entry(expenses_frame, textvariable=self.insurance2, width=15).grid(row=4, column=1, padx=(10, 0), pady=2)
         
         ttk.Label(expenses_frame, text="Water Bill (Annual $):").grid(row=5, column=0, sticky=tk.W, pady=2)
@@ -359,10 +359,10 @@ PROFIT/LOSS ANALYSIS:
         self.down_payment.set(180000)
         self.mortgage_length.set(30)
         self.tax1.set(5000)
-        self.tax2.set(3000)
-        self.tax3.set(2000)
+        self.tax2.set(2000)
+        self.tax3.set(4000)
         self.insurance1.set(5000)
-        self.insurance2.set(1000)
+        self.insurance2.set(2000)
         self.water_bill.set(1000)
         
         for rent in self.rent_entries:
