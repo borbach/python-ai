@@ -514,8 +514,7 @@ class FinancialAdvisorApp:
             leftIndent=15,
             rightIndent=15,
             alignment=TA_JUSTIFY,
-            leading=14,
-            wordWrap='CJK'  # Enable proper word wrapping
+            leading=14
         )
         
         # Header with logo placeholder (you can add actual logo later)
@@ -566,55 +565,31 @@ class FinancialAdvisorApp:
             story.append(Paragraph("Executive Summary of Recommendations", section_header_style))
             story.append(Spacer(1, 10))
             
-            # Create a summary box with proper text wrapping
+            # Create a summary box
             summary_data = []
             advice_count = 1
-            
-            # Create a custom style for advice text that wraps properly
-            advice_wrap_style = ParagraphStyle(
-                'AdviceWrap',
-                parent=styles['Normal'],
-                fontSize=11,
-                fontName='Helvetica',
-                leading=14,
-                leftIndent=0,
-                rightIndent=0,
-                spaceBefore=2,
-                spaceAfter=2,
-                alignment=TA_LEFT
-            )
-            
             for advice_item in self.advice_log:
                 for advice in advice_item['advice']:
                     if advice.strip():  # Only add non-empty advice
-                        # Create wrapped paragraph for the advice text
-                        advice_text = advice.strip()
-                        # Clean up the text - remove extra periods and clean formatting
-                        if advice_text.endswith('.'):
-                            advice_text = advice_text[:-1]
-                        
-                        wrapped_advice = Paragraph(advice_text, advice_wrap_style)
-                        summary_data.append([f"{advice_count}.", wrapped_advice])
+                        summary_data.append([f"{advice_count}.", advice.strip()])
                         advice_count += 1
             
             if summary_data:
-                # Adjusted column widths to ensure proper fitting
-                summary_table = Table(summary_data, colWidths=[0.4*inch, 5.6*inch])
+                summary_table = Table(summary_data, colWidths=[0.5*inch, 5.5*inch])
                 summary_table.setStyle(TableStyle([
                     ('BACKGROUND', (0, 0), (-1, -1), colors.lightyellow),
                     ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
                     ('ALIGN', (0, 0), (0, -1), 'CENTER'),
                     ('ALIGN', (1, 0), (1, -1), 'LEFT'),
                     ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-                    ('FONTSIZE', (0, 0), (0, -1), 12),  # Number column font size
+                    ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
+                    ('FONTSIZE', (0, 0), (-1, -1), 11),
                     ('GRID', (0, 0), (-1, -1), 1, colors.orange),
                     ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                    ('LEFTPADDING', (0, 0), (-1, -1), 8),
-                    ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-                    ('TOPPADDING', (0, 0), (-1, -1), 8),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-                    # Ensure text wrapping by setting row heights to auto
-                    ('ROWBACKGROUNDS', (0, 0), (-1, -1), [colors.lightyellow]),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 10),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+                    ('TOPPADDING', (0, 0), (-1, -1), 10),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
                 ]))
                 story.append(summary_table)
             
@@ -690,10 +665,8 @@ class FinancialAdvisorApp:
             
             story.append(Paragraph(header_text, role_style))
             
-            # Message content with proper formatting and text wrapping
+            # Message content with proper formatting
             content = msg["content"].replace('\n', '<br/>')
-            # Break up very long words or URLs that might cause overflow
-            content = self.break_long_words(content)
             story.append(Paragraph(content, conversation_text_style))
             story.append(Spacer(1, 10))
             
@@ -736,45 +709,6 @@ class FinancialAdvisorApp:
         # Build the PDF
         doc.build(story)
         print(f"Professional PDF report created: {filename}")
-    
-    def break_long_words(self, text, max_word_length=40):
-        """Break long words to prevent overflow in PDF"""
-        import re
-        
-        words = text.split(' ')
-        broken_words = []
-        
-        for word in words:
-            # Remove HTML tags for length calculation
-            clean_word = re.sub('<[^<]+?>', '', word)
-            
-            if len(clean_word) > max_word_length:
-                # Break long words by inserting spaces
-                broken = []
-                current = word
-                while len(re.sub('<[^<]+?>', '', current)) > max_word_length:
-                    # Find a good break point (avoid breaking HTML tags)
-                    if '<' in current and '>' in current:
-                        # Handle HTML tags carefully
-                        tag_end = current.find('>') + 1
-                        if tag_end < max_word_length:
-                            broken.append(current[:tag_end])
-                            current = current[tag_end:]
-                        else:
-                            broken.append(current[:max_word_length])
-                            current = current[max_word_length:]
-                    else:
-                        broken.append(current[:max_word_length])
-                        current = current[max_word_length:]
-                
-                if current:
-                    broken.append(current)
-                
-                broken_words.extend(broken)
-            else:
-                broken_words.append(word)
-        
-        return ' '.join(broken_words)
 
 def main():
     """Main function to run the application"""
@@ -789,5 +723,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 

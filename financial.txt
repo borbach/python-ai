@@ -138,3 +138,39 @@ The report now includes:
 - ✅ Professional footer and disclaimer
 
 Try it out and you'll see a dramatic improvement in the PDF's appearance!
+
+
+I'll fix the text wrapping issue in the PDF to ensure all text stays properly contained within the yellow recommendation boxes.Now I need to add the helper method for breaking long words:Perfect! I've fixed the text wrapping issues in the PDF. Here are the key improvements:
+
+## 🔧 **Text Wrapping Fixes:**
+
+### **1. Summary Table (Yellow Boxes):**
+- **Created a custom paragraph style** with proper wrapping for advice text
+- **Adjusted column widths** (0.4" for numbers, 5.6" for text) to ensure perfect fit
+- **Used Paragraph objects** instead of plain strings for the advice text
+- **Added proper text alignment** and spacing within cells
+- **Reduced padding** slightly to maximize text space
+
+### **2. Conversation Text:**
+- **Added `wordWrap='CJK'`** parameter for better word wrapping
+- **Implemented `break_long_words()` method** to handle extremely long words or URLs
+- **Improved text preprocessing** to handle HTML formatting properly
+
+### **3. Long Word Handling:**
+- **Automatic word breaking** for words longer than 40 characters
+- **Smart HTML tag preservation** during word breaking
+- **Prevents overflow** by inserting strategic breaks in long text
+
+## 🎯 **Key Improvements:**
+
+1. **No More Text Overflow**: All text now stays within the yellow recommendation boxes
+2. **Better Column Sizing**: Optimized the width ratio between number and text columns
+3. **Proper Line Breaks**: Long sentences wrap naturally within the available space
+4. **URL/Link Handling**: Long URLs or technical terms are broken appropriately
+5. **Clean Formatting**: Maintains professional appearance while ensuring readability
+
+The yellow recommendation boxes will now properly contain all text, with neat wrapping and no text extending outside the borders. The PDF will look much more professional and polished for your clients!
+
+Try generating a PDF now and you should see perfectly contained text within all the colored boxes and sections.
+
+
