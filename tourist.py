@@ -452,12 +452,12 @@ def main():
     
     # Load your source images
     source_image_paths = [
-        "bill-shar2.png", 
-        "bill-shar3.png", 
-        "bill-shar4.png", 
-        "bill-shar5.png", 
-        "bill-shar6.png", 
-        "bill-shar7.png" 
+        "result.png", 
+        "result (1).png", 
+        "result (2).png", 
+        "result (3).png", 
+        "result (4).png", 
+        "result (5).png", 
     ]
     
     print("Loading source images...")
