@@ -1,0 +1,48 @@
+You're right - the automatic background removal isn't working reliably. Let me create a preprocessing tool that will help you manually clean up your PNG images first, then use those cleaned images for the tourist photo composition:Perfect! I've created a specialized PNG Background Cleaner tool that will solve your black background problem. This tool will preprocess your images before using them with the tourist photo composer.
+
+## Installation:
+```bash
+pip install opencv-python pillow numpy tkinter
+```
+
+## Usage Options:
+
+### 1. Interactive Mode (Recommended)
+```bash
+python png_background_cleaner.py --interactive
+```
+This opens a GUI where you can:
+- Load your image
+- Try different cleaning options
+- See previews with checkerboard backgrounds
+- Fine-tune settings
+- Save the result
+
+### 2. Batch Processing
+```bash
+python png_background_cleaner.py your_images*.png -o cleaned_images
+```
+
+### 3. Custom Settings
+```bash
+python png_background_cleaner.py image.png --white-threshold 220 --black-threshold 40 -o output
+```
+
+## What It Does:
+
+1. **Auto-Remove White Backgrounds**: Multiple detection methods to remove white/light backgrounds
+2. **Remove Black Areas**: Eliminates unwanted black/dark regions
+3. **Fill Holes**: Closes small gaps in the person cutout
+4. **Clean Edges**: Smooths rough edges for better blending
+5. **Preview Mode**: Shows transparency with checkerboard pattern
+
+## Workflow:
+
+1. **First**: Clean your original images with this tool
+2. **Then**: Use the cleaned `*_cleaned.png` files with the tourist photo composer
+3. **Check**: Look at `*_preview.png` files to verify transparency is working
+
+The key advantage is that you can visually verify the background removal is working correctly before creating the tourist photos. The interactive mode lets you experiment with different thresholds until you get clean cutouts.
+
+Once you have properly cleaned PNG files with transparent backgrounds, the tourist photo composer should work perfectly without black backgrounds!
+
