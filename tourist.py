@@ -22,23 +22,12 @@ class TouristPhotoComposer:
             "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Vd-Orig.jpg/800px-Vd-Orig.jpg",  # Neuschwanstein Castle
             "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/800px-Colosseo_2020.jpg",  # Colosseum
             "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Brooklyn_Bridge_Manhattan.jpg/800px-Brooklyn_Bridge_Manhattan.jpg",  # Brooklyn Bridge
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Chichen_Itza_3.jpg/800px-Chichen_Itza_3.jpg",  # Chichen Itza
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Wheeldon_Gorge_lookout_at_Flinders_Ranges_National_Park.jpg/800px-Wheeldon_Gorge_lookout_at_Flinders_Ranges_National_Park.jpg",  # Mountain vista
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Palace_of_Versailles_June_2010.jpg/800px-Palace_of_Versailles_June_2010.jpg",  # Palace of Versailles
         ]
         
-        # Alternative: Local tourist site images (if you prefer to download and use local files)
-        self.local_tourist_sites = [
-            "tourist_backgrounds/eiffel_tower.jpg",
-            "tourist_backgrounds/big_ben.jpg", 
-            "tourist_backgrounds/statue_liberty.jpg",
-            "tourist_backgrounds/taj_mahal.jpg",
-            "tourist_backgrounds/tower_bridge.jpg",
-            "tourist_backgrounds/machu_picchu.jpg",
-            "tourist_backgrounds/sydney_opera.jpg",
-            "tourist_backgrounds/golden_gate.jpg",
-            "tourist_backgrounds/neuschwanstein.jpg",
-            "tourist_backgrounds/brooklyn_bridge.jpg"
+        self.site_names = [
+            "EiffelTower", "BigBen", "StatueLiberty", "TajMahal", "TowerBridge", 
+            "MachuPicchu", "SydneyOpera", "SagradaFamilia", "GoldenGate", 
+            "Neuschwanstein", "Colosseum", "BrooklynBridge"
         ]
         
     def download_image(self, url):
@@ -47,469 +36,462 @@ class TouristPhotoComposer:
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
             }
-            response = requests.get(url, headers=headers, timeout=10)
-            response.raise_for_status()  # Raises an HTTPError for bad responses
+            response = requests.get(url, headers=headers, timeout=15)
+            response.raise_for_status()
             img = Image.open(BytesIO(response.content))
             return np.array(img)
-        except requests.exceptions.RequestException as e:
-            print(f"Network error downloading image from {url}: {e}")
-            return None
         except Exception as e:
-            print(f"Error processing image from {url}: {e}")
+            print(f"Error downloading from {url}: {e}")
             return None
-    
-    def create_sample_backgrounds(self, output_dir="tourist_backgrounds"):
-        """Create sample background images if downloads fail"""
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-        
-        # Create simple colored backgrounds as fallbacks
-        backgrounds = []
-        colors = [
-            (135, 206, 235),  # Sky blue
-            (34, 139, 34),    # Forest green  
-            (255, 182, 193),  # Light pink
-            (255, 165, 0),    # Orange
-            (147, 112, 219),  # Medium purple
-            (255, 20, 147),   # Deep pink
-            (0, 191, 255),    # Deep sky blue
-            (154, 205, 50),   # Yellow green
-            (255, 69, 0),     # Red orange
-            (75, 0, 130),     # Indigo
-        ]
-        
-        for i, color in enumerate(colors):
-            # Create a simple gradient background
-            background = np.zeros((600, 800, 3), dtype=np.uint8)
-            for y in range(600):
-                factor = y / 600
-                new_color = tuple(int(c * (0.5 + factor * 0.5)) for c in color)
-                background[y, :] = new_color
-            
-            backgrounds.append(background)
-            
-            # Save as fallback
-            cv2.imwrite(f"{output_dir}/fallback_bg_{i+1}.jpg", 
-                       cv2.cvtColor(background, cv2.COLOR_RGB2BGR))
-        
-        return backgrounds
     
     def load_local_images(self, image_paths):
         """Load images from local paths"""
         images = []
+        valid_paths = []
         for path in image_paths:
             try:
                 img = cv2.imread(path)
                 if img is not None:
                     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                     images.append(img)
-                    print(f"Successfully loaded: {path}")
+                    valid_paths.append(path)
+                    print(f"Successfully loaded: {path} - Size: {img.shape}")
                 else:
                     print(f"Could not load image: {path}")
             except Exception as e:
                 print(f"Error loading image {path}: {e}")
-        return images
+        return images, valid_paths
     
-    def create_simple_person_mask(self, image):
-        """Simple but effective method to create a person mask"""
-        # For testing purposes, create a mask that includes the center portion of the image
-        # This assumes people are roughly in the center of the photo
+    def create_advanced_person_mask(self, image):
+        """Advanced person extraction using multiple techniques"""
         height, width = image.shape[:2]
-        mask = np.zeros((height, width), dtype=np.uint8)
         
-        # Create a rectangle in the center area where people are likely to be
-        margin_x = width // 6
-        margin_y = height // 8
+        # Method 1: Advanced skin detection
+        mask_skin = self.detect_skin_advanced(image)
         
-        # Fill the center area
-        mask[margin_y:height-margin_y, margin_x:width-margin_x] = 255
+        # Method 2: GrabCut with multiple initializations
+        mask_grabcut = self.grabcut_multi_init(image)
         
-        return mask
+        # Method 3: Edge-based segmentation
+        mask_edges = self.edge_based_segmentation(image)
+        
+        # Method 4: Color-based clustering
+        mask_cluster = self.color_clustering_mask(image)
+        
+        # Combine masks intelligently
+        final_mask = self.combine_masks_smart([mask_skin, mask_grabcut, mask_edges, mask_cluster], image)
+        
+        return final_mask
     
-    def extract_people_improved_skin_detection(self, image):
-        """Improved skin-based person detection"""
+    def detect_skin_advanced(self, image):
+        """Advanced skin detection with multiple color spaces"""
         # Convert to different color spaces
         hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
         ycrcb = cv2.cvtColor(image, cv2.COLOR_RGB2YCrCb)
+        lab = cv2.cvtColor(image, cv2.COLOR_RGB2LAB)
         
-        # Multiple skin tone ranges in HSV
-        skin_masks = []
+        # HSV skin detection (multiple ranges)
+        hsv_lower1 = np.array([0, 20, 70])
+        hsv_upper1 = np.array([20, 255, 255])
+        hsv_lower2 = np.array([0, 30, 80]) 
+        hsv_upper2 = np.array([25, 255, 255])
         
-        # HSV skin ranges (multiple ranges for different skin tones)
-        hsv_ranges = [
-            ([0, 20, 70], [20, 255, 255]),      # Light skin
-            ([0, 30, 80], [25, 255, 255]),      # Medium skin  
-            ([0, 40, 50], [15, 255, 255]),      # Another range
-            ([160, 20, 70], [180, 255, 255]),   # Reddish skin tones
-        ]
+        hsv_mask1 = cv2.inRange(hsv, hsv_lower1, hsv_upper1)
+        hsv_mask2 = cv2.inRange(hsv, hsv_lower2, hsv_upper2)
+        hsv_mask = cv2.bitwise_or(hsv_mask1, hsv_mask2)
         
-        for lower, upper in hsv_ranges:
-            mask = cv2.inRange(hsv, np.array(lower), np.array(upper))
-            skin_masks.append(mask)
-        
-        # YCrCb skin detection (often more reliable)
+        # YCrCb skin detection (more robust)
         ycrcb_mask = cv2.inRange(ycrcb, np.array([0, 133, 77]), np.array([255, 173, 127]))
-        skin_masks.append(ycrcb_mask)
         
-        # Combine all skin masks
-        combined_skin = np.zeros_like(skin_masks[0])
-        for mask in skin_masks:
-            combined_skin = cv2.bitwise_or(combined_skin, mask)
+        # LAB skin detection
+        lab_mask = cv2.inRange(lab, np.array([20, 15, 20]), np.array([255, 170, 120]))
         
-        # Expand skin areas to include clothing and body
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25))
-        expanded = cv2.dilate(combined_skin, kernel, iterations=2)
+        # Combine skin masks
+        skin_mask = cv2.bitwise_or(cv2.bitwise_or(hsv_mask, ycrcb_mask), lab_mask)
         
-        # Clean up the mask
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10, 10))
-        expanded = cv2.morphologyEx(expanded, cv2.MORPH_CLOSE, kernel)
-        expanded = cv2.morphologyEx(expanded, cv2.MORPH_OPEN, kernel)
+        # Morphological operations to clean up
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+        skin_mask = cv2.morphologyEx(skin_mask, cv2.MORPH_OPEN, kernel)
         
-        return expanded
+        # Dilate to include clothing near skin
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (20, 20))
+        skin_mask = cv2.dilate(skin_mask, kernel, iterations=2)
+        
+        return skin_mask
     
-    def extract_people_grabcut_improved(self, image):
-        """Improved GrabCut implementation"""
+    def grabcut_multi_init(self, image):
+        """GrabCut with multiple initialization strategies"""
         height, width = image.shape[:2]
-        mask = np.zeros((height, width), np.uint8)
         
-        # Try face detection first
+        # Try multiple rectangle initializations
+        rectangles = []
+        
+        # Center rectangle
+        margin_w, margin_h = width//5, height//6
+        rectangles.append((margin_w, margin_h, width-2*margin_w, height-2*margin_h))
+        
+        # Face detection guided rectangle
         gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
         face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
         faces = face_cascade.detectMultiScale(gray, 1.1, 4, minSize=(30, 30))
         
         if len(faces) > 0:
-            # Use face detection to guide the rectangle
-            face_areas = []
-            for (x, y, w, h) in faces:
-                face_areas.append((x, y, w, h, w*h))
-            
             # Use largest face
-            faces_sorted = sorted(face_areas, key=lambda x: x[4], reverse=True)
-            x, y, w, h, _ = faces_sorted[0]
+            largest_face = max(faces, key=lambda x: x[2]*x[3])
+            fx, fy, fw, fh = largest_face
             
-            # Expand around face to include body
-            body_width = w * 2.5
-            body_height = h * 4
-            
-            rect_x = max(0, int(x - body_width * 0.3))
-            rect_y = max(0, int(y - h * 0.2))
-            rect_w = min(width - rect_x, int(body_width))
-            rect_h = min(height - rect_y, int(body_height))
-            
-            rectangle = (rect_x, rect_y, rect_w, rect_h)
-        else:
-            # Fallback: assume person is in center 60% of image
-            margin_w, margin_h = width // 5, height // 6
-            rectangle = (margin_w, margin_h, width - 2*margin_w, height - 2*margin_h)
+            # Expand around face
+            body_w, body_h = fw * 2.5, fh * 4
+            rect_x = max(0, int(fx - body_w * 0.3))
+            rect_y = max(0, int(fy - fh * 0.2))
+            rect_w = min(width - rect_x, int(body_w))
+            rect_h = min(height - rect_y, int(body_h))
+            rectangles.append((rect_x, rect_y, rect_w, rect_h))
         
-        # Initialize models
-        fgModel = np.zeros((1, 65), np.float64)
-        bgModel = np.zeros((1, 65), np.float64)
+        # Try each rectangle and pick best result
+        best_mask = None
+        best_score = 0
         
-        try:
-            # Apply GrabCut
-            cv2.grabCut(image, mask, rectangle, bgModel, fgModel, 5, cv2.GC_INIT_WITH_RECT)
+        for rect in rectangles:
+            try:
+                mask = np.zeros((height, width), np.uint8)
+                bgdModel = np.zeros((1, 65), np.float64)
+                fgdModel = np.zeros((1, 65), np.float64)
+                
+                cv2.grabCut(image, mask, rect, bgdModel, fgdModel, 5, cv2.GC_INIT_WITH_RECT)
+                mask2 = np.where((mask == 2) | (mask == 0), 0, 1).astype('uint8') * 255
+                
+                # Score based on reasonable coverage
+                coverage = np.sum(mask2 > 0) / (width * height)
+                if 0.1 < coverage < 0.7:  # Reasonable person size
+                    if coverage > best_score:
+                        best_score = coverage
+                        best_mask = mask2
+                        
+            except Exception as e:
+                continue
+        
+        if best_mask is None:
+            # Fallback
+            mask = np.zeros((height, width), dtype=np.uint8)
+            x, y, w, h = rectangles[0]
+            mask[y:y+h, x:x+w] = 255
+            return mask
             
-            # Convert mask
-            mask2 = np.where((mask == 2) | (mask == 0), 0, 1).astype('uint8')
-            return mask2 * 255
-            
-        except Exception as e:
-            print(f"GrabCut failed: {e}")
-            # Fallback to rectangle mask
-            mask_fallback = np.zeros((height, width), dtype=np.uint8)
-            x, y, w, h = rectangle
-            mask_fallback[y:y+h, x:x+w] = 255
-            return mask_fallback
+        return best_mask
     
-    def create_combined_mask(self, image, debug=False):
-        """Create the best possible person mask by combining multiple methods"""
-        print(f"    Creating mask using multiple methods...")
+    def edge_based_segmentation(self, image):
+        """Use edge detection to help identify person boundaries"""
+        gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
         
-        # Method 1: Simple center-based mask (most reliable fallback)
-        mask_simple = self.create_simple_person_mask(image)
+        # Multiple edge detection
+        edges1 = cv2.Canny(gray, 30, 100)
+        edges2 = cv2.Canny(gray, 50, 150)
+        edges = cv2.bitwise_or(edges1, edges2)
         
-        # Method 2: Skin-based detection
-        mask_skin = self.extract_people_improved_skin_detection(image)
+        # Close gaps in edges
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+        edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
         
-        # Method 3: GrabCut
-        mask_grabcut = self.extract_people_grabcut_improved(image)
+        # Find contours and filter by size/shape
+        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
-        # Combine masks intelligently
-        # If skin detection found significant areas, use it as primary
-        skin_coverage = np.sum(mask_skin > 0) / (image.shape[0] * image.shape[1])
-        grabcut_coverage = np.sum(mask_grabcut > 0) / (image.shape[0] * image.shape[1])
+        mask = np.zeros(gray.shape, dtype=np.uint8)
+        img_area = gray.shape[0] * gray.shape[1]
         
-        print(f"    Skin detection coverage: {skin_coverage:.1%}")
-        print(f"    GrabCut coverage: {grabcut_coverage:.1%}")
+        for contour in contours:
+            area = cv2.contourArea(contour)
+            if img_area * 0.02 < area < img_area * 0.6:  # Reasonable size
+                x, y, w, h = cv2.boundingRect(contour)
+                aspect_ratio = h / w if w > 0 else 0
+                if 0.7 < aspect_ratio < 3.0:  # Person-like proportions
+                    cv2.fillPoly(mask, [contour], 255)
         
-        if skin_coverage > 0.05:  # If skin detection found reasonable amount
-            # Use skin detection as base, intersect with GrabCut if it's reasonable
-            if 0.1 < grabcut_coverage < 0.7:
-                combined_mask = cv2.bitwise_and(mask_skin, mask_grabcut)
-                if np.sum(combined_mask > 0) / (image.shape[0] * image.shape[1]) < 0.05:
-                    # If intersection is too small, just use skin mask
-                    combined_mask = mask_skin
-            else:
-                combined_mask = mask_skin
-        elif 0.1 < grabcut_coverage < 0.7:  # GrabCut seems reasonable
-            combined_mask = mask_grabcut
+        return mask
+    
+    def color_clustering_mask(self, image):
+        """Use K-means clustering to separate foreground from background"""
+        # Reshape image to be a list of pixels
+        data = image.reshape((-1, 3))
+        data = np.float32(data)
+        
+        # Apply K-means clustering
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
+        _, labels, centers = cv2.kmeans(data, 4, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+        
+        # Convert back to image shape
+        labels = labels.reshape(image.shape[:2])
+        
+        # Try to identify which clusters might be person vs background
+        # This is heuristic - usually person clusters are in center area
+        height, width = image.shape[:2]
+        center_region = labels[height//4:3*height//4, width//4:3*width//4]
+        
+        # Find most common cluster in center
+        unique, counts = np.unique(center_region, return_counts=True)
+        person_cluster = unique[np.argmax(counts)]
+        
+        # Create mask
+        mask = np.where(labels == person_cluster, 255, 0).astype(np.uint8)
+        
+        return mask
+    
+    def combine_masks_smart(self, masks, image):
+        """Intelligently combine multiple masks"""
+        height, width = image.shape[:2]
+        img_area = height * width
+        
+        valid_masks = []
+        mask_scores = []
+        
+        # Score each mask
+        for mask in masks:
+            coverage = np.sum(mask > 0) / img_area
+            # Good masks have reasonable coverage and are roughly centered
+            if 0.05 < coverage < 0.8:
+                # Check if mask is somewhat centered (people usually are)
+                center_y, center_x = height//2, width//2
+                mask_moments = cv2.moments(mask)
+                if mask_moments['m00'] > 0:
+                    centroid_x = mask_moments['m10'] / mask_moments['m00']
+                    centroid_y = mask_moments['m01'] / mask_moments['m00']
+                    
+                    # Distance from center (normalized)
+                    dist_from_center = np.sqrt((centroid_x - center_x)**2 + (centroid_y - center_y)**2)
+                    dist_from_center /= np.sqrt(center_x**2 + center_y**2)
+                    
+                    score = coverage * (1 - dist_from_center * 0.5)  # Prefer centered masks
+                    valid_masks.append(mask)
+                    mask_scores.append(score)
+        
+        if not valid_masks:
+            # Fallback to center rectangle
+            mask = np.zeros((height, width), dtype=np.uint8)
+            margin_x, margin_y = width//4, height//6
+            mask[margin_y:height-margin_y, margin_x:width-margin_x] = 255
+            return mask
+        
+        # Use the two best masks and combine them
+        sorted_indices = np.argsort(mask_scores)[::-1]
+        
+        if len(valid_masks) >= 2:
+            # Combine top 2 masks
+            best_mask = valid_masks[sorted_indices[0]]
+            second_mask = valid_masks[sorted_indices[1]]
+            combined = cv2.bitwise_or(best_mask, second_mask)
         else:
-            # Fallback to simple center mask
-            print(f"    Using fallback center mask")
-            combined_mask = mask_simple
+            combined = valid_masks[sorted_indices[0]]
         
         # Final cleanup
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-        combined_mask = cv2.morphologyEx(combined_mask, cv2.MORPH_CLOSE, kernel)
-        combined_mask = cv2.morphologyEx(combined_mask, cv2.MORPH_OPEN, kernel)
+        combined = cv2.morphologyEx(combined, cv2.MORPH_CLOSE, kernel)
+        combined = cv2.morphologyEx(combined, cv2.MORPH_OPEN, kernel)
         
-        final_coverage = np.sum(combined_mask > 0) / (image.shape[0] * image.shape[1])
-        print(f"    Final mask coverage: {final_coverage:.1%}")
-        
-        return combined_mask
+        return combined
     
-    def create_soft_mask(self, mask, blur_radius=3):
-        """Create a soft-edged mask for better blending"""
-        # Apply Gaussian blur to soften edges
-        soft_mask = cv2.GaussianBlur(mask.astype(np.float32), (blur_radius*2+1, blur_radius*2+1), 0)
+    def create_clean_cutout(self, image, mask):
+        """Create a clean cutout of the person with transparent background"""
+        # Ensure mask is single channel
+        if len(mask.shape) == 3:
+            mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
         
-        # Normalize to 0-255 range
-        if soft_mask.max() > 0:
-            soft_mask = (soft_mask / soft_mask.max() * 255).astype(np.uint8)
-        else:
-            soft_mask = mask  # Return original if all zeros
+        # Create 4-channel image (RGBA)
+        height, width = image.shape[:2]
+        result = np.zeros((height, width, 4), dtype=np.uint8)
         
-        return soft_mask
+        # Copy RGB channels
+        result[:,:,0:3] = image
+        
+        # Use mask as alpha channel
+        result[:,:,3] = mask
+        
+        return result
     
-    def blend_images(self, person_img, person_mask, background_img, position=(0, 0), scale=1.0):
-        """Blend people with background with improved visibility"""
-        # Resize person image and mask if needed
+    def blend_person_into_background(self, person_cutout, background, position=(0, 0), scale=1.0):
+        """Blend person cutout into background with proper transparency"""
+        # Resize person cutout if needed
         if scale != 1.0:
-            new_width = int(person_img.shape[1] * scale)
-            new_height = int(person_img.shape[0] * scale)
-            person_img = cv2.resize(person_img, (new_width, new_height))
-            person_mask = cv2.resize(person_mask, (new_width, new_height))
+            new_width = int(person_cutout.shape[1] * scale)
+            new_height = int(person_cutout.shape[0] * scale)
+            person_cutout = cv2.resize(person_cutout, (new_width, new_height))
         
-        # Create soft mask for blending
-        person_mask_soft = self.create_soft_mask(person_mask, blur_radius=2)
+        bg_height, bg_width = background.shape[:2]
+        person_height, person_width = person_cutout.shape[:2]
         
-        # Ensure background is the right size
-        bg_height, bg_width = background_img.shape[:2]
-        person_height, person_width = person_img.shape[:2]
-        
-        # Calculate placement position
+        # Adjust position to fit
         x, y = position
-        
-        # Adjust bounds
         x = max(0, min(x, bg_width - person_width))
         y = max(0, min(y, bg_height - person_height))
         
-        # Calculate actual dimensions that fit
+        # Calculate actual dimensions
         actual_width = min(person_width, bg_width - x)
         actual_height = min(person_height, bg_height - y)
         
         if actual_width <= 0 or actual_height <= 0:
-            print("    Warning: Person doesn't fit in background, using original background")
-            return background_img
+            return background
         
-        # Crop if needed
-        person_img_cropped = person_img[:actual_height, :actual_width]
-        person_mask_cropped = person_mask_soft[:actual_height, :actual_width]
+        # Crop if necessary
+        person_crop = person_cutout[:actual_height, :actual_width]
+        
+        # Extract alpha channel
+        alpha = person_crop[:,:,3].astype(float) / 255.0
+        alpha = np.stack([alpha] * 3, axis=2)  # Make 3-channel for RGB
         
         # Get background region
-        roi = background_img[y:y+actual_height, x:x+actual_width].copy()
+        bg_region = background[y:y+actual_height, x:x+actual_width].astype(float)
+        person_rgb = person_crop[:,:,0:3].astype(float)
         
-        # Normalize mask for blending (0 to 1)
-        mask_norm = person_mask_cropped.astype(float) / 255.0
-        if len(mask_norm.shape) == 2:
-            mask_norm = np.stack([mask_norm] * 3, axis=2)
-        
-        # Blend: person where mask is 1, background where mask is 0
-        blended_roi = person_img_cropped.astype(float) * mask_norm + roi.astype(float) * (1 - mask_norm)
+        # Blend
+        blended = person_rgb * alpha + bg_region * (1 - alpha)
         
         # Create result
-        result = background_img.copy()
-        result[y:y+actual_height, x:x+actual_width] = blended_roi.astype(np.uint8)
+        result = background.copy().astype(float)
+        result[y:y+actual_height, x:x+actual_width] = blended
         
-        # Print debug info
-        mask_percentage = np.mean(mask_norm) * 100
-        print(f"    Blended with {mask_percentage:.1f}% person visibility")
-        
-        return result
+        return result.astype(np.uint8)
     
-    def process_tourist_photos(self, source_images, output_dir="tourist_composites", use_local=False):
-        """Main function to process tourist photos with improved debugging"""
+    def process_individual_tourist_photos(self, source_images, source_paths, output_dir="individual_tourist_photos"):
+        """Create individual photos for each person at each tourist site"""
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         
-        results = []
+        # Load background images
+        print("Loading tourist site backgrounds...")
         background_images = []
+        site_names = []
         
-        # Try to get background images
-        if use_local:
-            print("Using local tourist site images...")
-            for path in self.local_tourist_sites:
-                if os.path.exists(path):
-                    img = cv2.imread(path)
-                    if img is not None:
-                        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                        background_images.append(img)
-        else:
-            print("Downloading tourist site images...")
-            for i, site_url in enumerate(self.tourist_sites[:5]):  # Limit to 5 for testing
-                print(f"  Downloading background {i+1}/5...")
-                background = self.download_image(site_url)
-                if background is not None:
-                    background_images.append(background)
-                else:
-                    print(f"    Failed to download, skipping...")
+        for i, site_url in enumerate(self.tourist_sites):
+            print(f"  Loading site {i+1}/{len(self.tourist_sites)}: {self.site_names[i]}")
+            background = self.download_image(site_url)
+            if background is not None:
+                # Resize to standard size
+                background = cv2.resize(background, (1200, 800))
+                background_images.append(background)
+                site_names.append(self.site_names[i])
+            else:
+                print(f"    Failed to load {self.site_names[i]}")
         
-        # If no backgrounds were loaded successfully, create sample ones
         if not background_images:
-            print("No background images loaded successfully. Creating sample backgrounds...")
-            background_images = self.create_sample_backgrounds()[:5]  # Limit for testing
+            print("No background images loaded successfully!")
+            return []
         
-        print(f"Successfully loaded {len(background_images)} background images")
+        print(f"Successfully loaded {len(background_images)} tourist sites")
+        
+        results = []
         
         # Process each source image
-        for i, source_img in enumerate(source_images):
-            print(f"\nProcessing source image {i+1}/{len(source_images)}")
-            print(f"  Source image size: {source_img.shape}")
+        for source_idx, (source_img, source_path) in enumerate(zip(source_images, source_paths)):
+            print(f"\nProcessing {source_path}...")
             
-            # Create person mask with debugging
-            person_mask = self.create_combined_mask(source_img, debug=True)
+            # Extract person mask
+            print("  Creating person mask...")
+            person_mask = self.create_advanced_person_mask(source_img)
             
-            # Save mask for inspection
-            mask_path = f"{output_dir}/debug_mask_source{i+1}.jpg"
-            cv2.imwrite(mask_path, person_mask)
-            print(f"  Mask saved to: {mask_path}")
+            # Save debug mask
+            mask_debug_path = f"{output_dir}/debug_mask_{source_idx+1}.jpg"
+            cv2.imwrite(mask_debug_path, person_mask)
+            print(f"  Debug mask saved: {mask_debug_path}")
             
-            # Also save the original source for comparison
-            source_path = f"{output_dir}/debug_source{i+1}.jpg"
-            cv2.imwrite(source_path, cv2.cvtColor(source_img, cv2.COLOR_RGB2BGR))
+            # Check mask quality
+            coverage = np.sum(person_mask > 0) / (person_mask.shape[0] * person_mask.shape[1])
+            print(f"  Mask coverage: {coverage:.1%}")
             
-            # Process with first few backgrounds
-            for j, background in enumerate(background_images[:3]):  # Limit for testing
-                print(f"\n  Creating composite {j+1}/{min(3, len(background_images))}")
+            if coverage < 0.05:
+                print(f"  Warning: Very small mask detected, results may be poor")
+            elif coverage > 0.8:
+                print(f"  Warning: Very large mask detected, may include background")
+            
+            # Create clean person cutout
+            person_cutout = self.create_clean_cutout(source_img, person_mask)
+            
+            # Extract base filename
+            base_name = os.path.splitext(os.path.basename(source_path))[0]
+            
+            # Place person at each tourist site
+            for bg_idx, (background, site_name) in enumerate(zip(background_images, site_names)):
+                print(f"    Creating photo at {site_name}...")
                 
-                # Resize background to standard size
-                background = cv2.resize(background, (800, 600))
-                print(f"    Background size: {background.shape}")
-                
-                # Calculate better positioning and scaling
+                # Calculate positioning and scale
                 bg_height, bg_width = background.shape[:2]
-                person_height, person_width = source_img.shape[:2]
+                person_height, person_width = person_cutout.shape[:2]
                 
-                # Scale to fit nicely in the scene (make people visible but not too large)
-                max_person_width = bg_width * 0.4  # Max 40% of background width
-                max_person_height = bg_height * 0.6  # Max 60% of background height
+                # Scale person to fit nicely (max 30% of background width)
+                max_person_width = bg_width * 0.3
+                max_person_height = bg_height * 0.5
                 
                 scale_w = max_person_width / person_width
                 scale_h = max_person_height / person_height
                 scale = min(scale_w, scale_h, 1.0)  # Don't upscale
-                
-                print(f"    Scale factor: {scale:.2f}")
                 
                 # Position in lower center area
                 new_width = int(person_width * scale)
                 new_height = int(person_height * scale)
                 
                 x = (bg_width - new_width) // 2  # Center horizontally
-                y = bg_height - new_height - 20   # 20 pixels from bottom
+                y = bg_height - new_height - 50   # 50 pixels from bottom
                 
-                print(f"    Positioning at: ({x}, {y}), size: {new_width}x{new_height}")
-                
-                # Create composite
-                composite = self.blend_images(
-                    source_img, person_mask, background,
+                # Create the composite
+                result_img = self.blend_person_into_background(
+                    person_cutout, background, 
                     position=(x, y), scale=scale
                 )
                 
-                # Save result
-                output_path = f"{output_dir}/composite_source{i+1}_bg{j+1}.jpg"
-                cv2.imwrite(output_path, cv2.cvtColor(composite, cv2.COLOR_RGB2BGR))
+                # Save individual photo
+                output_filename = f"{base_name}_at_{site_name}.jpg"
+                output_path = os.path.join(output_dir, output_filename)
+                
+                cv2.imwrite(output_path, cv2.cvtColor(result_img, cv2.COLOR_RGB2BGR))
                 results.append(output_path)
-                print(f"    Saved: {output_path}")
+                print(f"      Saved: {output_filename}")
         
         return results
-    
-    def create_collage(self, image_paths, collage_path="tourist_collage.jpg"):
-        """Create a collage of all composite images"""
-        if not image_paths:
-            return None
-        
-        # Load all images
-        images = []
-        for path in image_paths:
-            img = cv2.imread(path)
-            if img is not None:
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                img = cv2.resize(img, (300, 225))  # Standardize size
-                images.append(img)
-        
-        if not images:
-            return None
-            
-        # Calculate grid dimensions
-        n_images = len(images)
-        cols = int(np.ceil(np.sqrt(n_images)))
-        rows = int(np.ceil(n_images / cols))
-        
-        # Create collage
-        collage = np.zeros((rows * 225, cols * 300, 3), dtype=np.uint8)
-        
-        for i, img in enumerate(images):
-            row = i // cols
-            col = i % cols
-            collage[row*225:(row+1)*225, col*300:(col+1)*300] = img
-        
-        # Save collage
-        cv2.imwrite(collage_path, cv2.cvtColor(collage, cv2.COLOR_RGB2BGR))
-        return collage_path
 
 def main():
     # Initialize the composer
     composer = TouristPhotoComposer()
     
-    # Load your source images (replace with actual paths to your photos)
+    # Load your source images
     source_image_paths = [
-        "bill-shar2.jpg", 
-        "bill-shar3.jpg", 
-        "bill-shar4.jpg", 
-        "bill-shar5.jpg", 
-        "bill-shar6.jpg", 
-        "bill-shar7.jpg" 
+        "bill-shar2.png", 
+        "bill-shar3.png", 
+        "bill-shar4.png", 
+        "bill-shar5.png", 
+        "bill-shar6.png", 
+        "bill-shar7.png" 
     ]
     
     print("Loading source images...")
-    source_images = composer.load_local_images(source_image_paths)
+    source_images, valid_paths = composer.load_local_images(source_image_paths)
     
     if not source_images:
-        print("No source images found. Please check the file paths.")
-        print("Make sure the images exist in the current directory or update the paths.")
+        print("\n❌ No source images found!")
+        print("Please make sure the following files exist in your current directory:")
+        for path in source_image_paths:
+            print(f"  - {path}")
         return
     
-    print(f"Loaded {len(source_images)} source images")
-    print("Creating tourist site composites...")
+    print(f"\n✅ Loaded {len(source_images)} source images")
     
-    # Process images
-    results = composer.process_tourist_photos(source_images, use_local=False)
+    print("\n🏛️ Creating individual tourist photos...")
+    print("This will create separate photos of each person at each tourist site")
     
-    print(f"\nCreated {len(results)} composite images!")
-    print("Check the 'tourist_composites' folder for:")
-    print("- debug_source*.jpg (original images)")
-    print("- debug_mask*.jpg (person masks - white areas will be transferred)")
-    print("- composite*.jpg (final composites)")
+    # Create individual photos
+    results = composer.process_individual_tourist_photos(source_images, valid_paths)
     
-    # Create collage
-    if results:
-        collage_path = composer.create_collage(results)
-        if collage_path:
-            print(f"Collage saved to: {collage_path}")
+    print(f"\n🎉 Created {len(results)} individual tourist photos!")
+    print(f"\n📁 Check the 'individual_tourist_photos' folder for:")
+    print("  - debug_mask_*.jpg (shows what areas were detected as people)")
+    print("  - *_at_*.jpg (individual photos at each tourist site)")
     
-    print("\nProcessing complete!")
+    if len(results) == 0:
+        print("\n⚠️  No photos were created. Check the debug masks to see if person detection is working.")
+        print("If masks are poor, you may need photos with:")
+        print("  - Better lighting and contrast")
+        print("  - People clearly separated from backgrounds")
+        print("  - Less cluttered backgrounds")
 
 if __name__ == "__main__":
     main()
+
+
 
