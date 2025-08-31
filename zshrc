@@ -272,8 +272,9 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
+export OPENAI_API_KEY=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
 export GOOGLE_API_KEY=AIzaSyB1oM5l4kKIiqsGy-k2jUnC-FiF0VQ7F6s
 export GEMINI_API_KEY=AIzaSyB1oM5l4kKIiqsGy-k2jUnC-FiF0VQ7F6s
 export OPENWEATHER_API_KEY=5e8089fba040eee46d43da8676c5750a
 export ANTHROPIC_API_KEY=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
-
+export STABILITY_API_KEY=sk-XEvNJLDdswcfu8KZh6Lz17BLd1EwGiSAMqEsTEzQGB7ZpJ2q
