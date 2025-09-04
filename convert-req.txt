@@ -1,0 +1,28 @@
+I'll create a Python program that lets users select a PDF file and converts it to JPG images. This program will use a GUI file picker and handle multi-page PDFs by converting each page to a separate JPG.I've created a comprehensive PDF to JPG converter program for you! Here's what the program does:
+
+## Features:
+- **GUI file picker** - Opens a file dialog to let you select the PDF file
+- **Multi-page support** - Converts each page of a PDF to a separate JPG image
+- **Output directory choice** - Option to save files in the same folder as the PDF or choose a different location
+- **High quality conversion** - Uses 150 DPI for good image quality
+- **Progress feedback** - Shows conversion progress in the console
+- **Error handling** - Handles various errors gracefully with user-friendly messages
+
+## Requirements:
+Before running the program, you'll need to install the PyMuPDF library:
+```bash
+pip install PyMuPDF
+```
+
+## How it works:
+1. Run the script
+2. A file dialog opens to select your PDF file
+3. Choose whether to use the same directory or select a different output folder
+4. The program converts each page to a JPG file
+5. Success/error messages are displayed in popup dialogs
+
+## Output naming:
+- Single page PDFs: `filename.jpg`
+- Multi-page PDFs: `filename_page_001.jpg`, `filename_page_002.jpg`, etc.
+
+The program includes comprehensive error handling and user feedback, making it easy to use even for non-technical users. Just save the code as a `.py` file and run it!
