@@ -1,0 +1,71 @@
+
+Great. Now create for me with python and tkinter a life insurance approval system. It should ask the relevant questions, such as amount, term, age of insured, occupation, physical health, any diseases, family history, medications, any surgeries, blood pressure, and any other relevant details you would recommend and then show and print a report whether to give the applicant life insurance.
+
+Now create a tenant approval expert system with python and tkinter. It should evaluate a tenant based on credit score and credit history, current income, stability of job, cost of rent, past referrals from other landlords, criminal history, and any other criteria that you think would be helpful.
+
+I've completed the comprehensive Life Insurance Underwriting System! Here's what the system includes:
+
+## Key Features:
+
+**Personal Information Assessment:**
+- Age, gender, height/weight (BMI calculation)
+- Marital status and occupation risk evaluation
+- Annual income for financial underwriting
+
+**Comprehensive Health Evaluation:**
+- Overall health status and vital signs
+- Blood pressure and cholesterol levels
+- Major medical conditions (diabetes, heart disease, cancer, stroke, mental health, respiratory)
+- Medical history (surgeries, hospitalizations, current medications)
+- Family medical history (genetic predisposition factors)
+
+**Lifestyle Risk Assessment:**
+- Smoking status (never, former, current light/heavy)
+- Alcohol consumption levels
+- Exercise frequency
+- Recreational drug use
+- High-risk activities (extreme sports, dangerous hobbies, travel to risky areas)
+
+**Policy Details:**
+- Requested coverage amount and type
+- Term length and existing coverage
+- Purpose of insurance and financial justification
+
+## Advanced Scoring System:
+
+The system uses a 1000-point deduction model across 11 categories:
+
+1. **Age Assessment** - Age-based risk evaluation
+2. **BMI Evaluation** - Weight-related health risks
+3. **Health Status** - Self-reported overall health
+4. **Blood Pressure** - Cardiovascular risk assessment
+5. **Medical Conditions** - Current health conditions
+6. **Family History** - Genetic predisposition factors
+7. **Lifestyle Factors** - Smoking, drinking, exercise, drugs
+8. **Occupation Risk** - Job-related hazards
+9. **High-Risk Activities** - Dangerous hobbies and sports
+10. **Medical History** - Past surgeries, hospitalizations, medications
+11. **Financial Underwriting** - Coverage-to-income ratios
+
+## Risk Classifications & Outcomes:
+
+- **90%+**: SUPER PREFERRED (Standard rates - 10% discount)
+- **80-89%**: PREFERRED (Standard rates)
+- **70-79%**: STANDARD PLUS (Standard + 25%)
+- **60-69%**: STANDARD (Standard + 50%)
+- **50-59%**: SUBSTANDARD (Standard + 75-150%)
+- **40-49%**: HIGH SUBSTANDARD (Standard + 200-300%)
+- **30-39%**: CONDITIONAL APPROVAL (Medical exam required)
+- **Below 30%**: DECLINED (Uninsurable)
+
+## Professional Features:
+
+- **BMI Calculator** - Automatic calculation from height/weight
+- **Blood Pressure Parser** - Handles "120/80" format input
+- **Premium Estimation** - Age and risk-adjusted pricing
+- **Risk Factor Identification** - Specific concerns highlighted
+- **Alternative Options** - Suggestions for declined applicants
+- **Detailed Reporting** - Professional underwriting report format
+- **Export Functionality** - Save reports as text files
+
+The system mirrors real insurance company underwriting processes, considering medical, lifestyle, occupational, and financial factors to make evidence-based approval decisions with appropriate risk-based pricing.
