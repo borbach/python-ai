@@ -1,0 +1,48 @@
+I see the response was cut off. Let me continue explaining the decision matrix and additional features:
+
+## Decision Matrix (continued):
+
+- **80%+ Score**: APPROVED (Low Risk, Prime Rate 4.5-6.0%)
+- **65-79%**: APPROVED WITH CONDITIONS (Medium Risk, 6.5-8.0%)
+- **45-64%**: CONDITIONAL APPROVAL (High Risk, 8.5-12.0% or require co-signer)
+- **Below 45%**: DECLINED (Very High Risk)
+
+## Advanced Features:
+
+**Automated Calculations:**
+- Debt-to-income ratio including projected loan payments
+- Loan-to-value ratio for collateral assessment
+- Monthly payment estimation using standard amortization
+- Risk-based interest rate suggestions
+
+**Smart Risk Assessment:**
+- Considers multiple risk factors simultaneously
+- Provides specific recommendations for improvement
+- Identifies red flags (high DTI, poor credit, criminal history)
+- Suggests mitigation strategies (co-signers, additional collateral)
+
+**Professional Reporting:**
+- Detailed assessment breakdown by category
+- Timestamp and applicant summary
+- Financial ratio analysis
+- Specific recommendations for loan officers
+- Export functionality for documentation
+
+**User-Friendly Interface:**
+- Organized tabs for different information types
+- Dropdown menus for standardized inputs
+- Clear navigation and data entry validation
+- Results displayed in professional report format
+
+## How to Use:
+
+1. **Fill Personal Info**: Age, employment, family status, criminal record
+2. **Enter Financial Data**: Income, expenses, credit score, assets, debts
+3. **Specify Loan Details**: Amount, term, purpose, collateral
+4. **Click "Evaluate Application"** to generate the assessment
+5. **Review Results** in the dedicated tab
+6. **Export Report** for documentation
+
+The system mimics real bank underwriting processes while being educational and transparent about the decision-making criteria. It's designed to help understand the complex factors that banks consider when making loan decisions.
+
+Would you like me to modify any specific aspects of the system or add additional features?
